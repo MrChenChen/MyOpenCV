@@ -13,3 +13,6 @@ Mat QImage2cvMat(QImage &);
 QFileInfoList GetFileList(QString);
 
 Mat DetectFace(Mat &, CvHaarClassifierCascade*, QTextEdit*);
+
+
+Mat Reverse(Mat src);

@@ -18,7 +18,7 @@ public:
 
 	void SetUpUI();
 
-	void ConnectSignalAndSlot();
+	void InitConnection();
 
 	~MainWindow();
 
@@ -56,6 +56,8 @@ public:
 	QPushButton *btnShowSrc;
 
 	QPushButton *btnShowSrc_Copy;
+
+	QPushButton *btnOCR = nullptr;
 
 	QComboBox *comboxMatchTemplate;
 

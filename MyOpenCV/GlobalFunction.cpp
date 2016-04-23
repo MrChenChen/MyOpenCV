@@ -147,5 +147,10 @@ Mat DetectFace(Mat & src, CvHaarClassifierCascade* cascade, QTextEdit* label)
 	return src;
 }
 
+cv::Mat Reverse(Mat src)
+{
+	Mat dst = src < 100;
 
+	return dst;
+}
 

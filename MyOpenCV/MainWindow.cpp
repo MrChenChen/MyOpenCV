@@ -1,15 +1,17 @@
 #include <stdafx.h>
 #include "MainWindow.h"
+#include <vector>
+
 
 using namespace cv;
-
+using namespace std;
 
 MainWindow::MainWindow()
 {
 
 	SetUpUI();
 
-	ConnectSignalAndSlot();
+	InitConnection();
 }
 
 
@@ -49,7 +51,7 @@ void MainWindow::SetUpUI()
 
 #pragma region ср╡Ю©ь╪Ч
 
-	btnOpenImage = new QPushButton("Open Image", groupbox);
+	btnOpenImage = new QPushButton("Load Image", groupbox);
 
 	btnOpenImage->setGeometry(20, 50, 120, 35);
 
@@ -70,6 +72,9 @@ void MainWindow::SetUpUI()
 
 	btnShowSrc = new QPushButton("Src", groupbox);
 	btnShowSrc->setGeometry(280, 100, 60, 35);
+
+	btnOCR = new QPushButton("OCR", groupbox);
+	btnOCR->setGeometry(160, 280, 90, 35);
 
 	btnShowSrc_Copy = new QPushButton("Src_Copy", groupbox);
 	btnShowSrc_Copy->setGeometry(340, 100, 60, 35);
@@ -246,7 +251,7 @@ void MainWindow::SetUpUI()
 
 
 
-void MainWindow::ConnectSignalAndSlot()
+void MainWindow::InitConnection()
 {
 
 	connect(btnOpenImage, &QPushButton::clicked, this, [&]
@@ -267,7 +272,7 @@ void MainWindow::ConnectSignalAndSlot()
 				return;
 			}
 		}
-		MSG("Open Image File Failed", "Error");
+		MSG("Error", "Open Image File Failed");
 	});
 
 
@@ -438,6 +443,7 @@ void MainWindow::ConnectSignalAndSlot()
 				roiRect.y()*mainPicbox->m_Scale,
 				roiRect.width()*mainPicbox->m_Scale,
 				roiRect.height()*mainPicbox->m_Scale);
+
 		}
 
 	});
@@ -579,10 +585,12 @@ void MainWindow::ConnectSignalAndSlot()
 		imshow("Src", src);
 	});
 
+
 	connect(btnShowSrc_Copy, &QPushButton::clicked, this, [&]
 	{
 		imshow("Src_copy", src_copy);
 	});
+
 
 	connect(btnTestFace, &QPushButton::clicked, this, [&]
 	{
@@ -593,8 +601,36 @@ void MainWindow::ConnectSignalAndSlot()
 	});
 
 
+	connect(btnOCR, &QPushButton::clicked, this, [&]
+	{
+		Mat src_1 = src.clone();
 
+		if (src_1.channels() != 1)
+		{
+			cvtColor(src_1, src_1, CV_RGB2GRAY);
+		}
+
+		threshold(src_1, src_1, 128, 255, CV_THRESH_OTSU + CV_THRESH_BINARY);
+
+
+		vector<vector<Point>> contours;
+
+		findContours(src_1, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+
+		//drawContours(src, contours, -1, Scalar(0, 255, 0), 1);
+
+
+		for each (auto item in contours)
+		{
+			InputArray p(item);
+			RotatedRect rect = minAreaRect(p);
+			rectangle(src, rect.boundingRect(), CvScalar(0, 255, 0));
+		}
+
+		mainPicbox->SetImage(src);
+	});
 }
+
 
 
 
