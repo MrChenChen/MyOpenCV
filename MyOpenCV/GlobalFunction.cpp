@@ -91,6 +91,7 @@ QFileInfoList GetFileList(QString path)
 	return allFiles;
 }
 
+static Mat lastFace;
 
 Mat DetectFace(Mat & src, CvHaarClassifierCascade* cascade, QTextEdit* label)
 {
@@ -116,21 +117,20 @@ Mat DetectFace(Mat & src, CvHaarClassifierCascade* cascade, QTextEdit* label)
 
 		if (cascade)
 		{
-			CvSeq* faces = cvHaarDetectObjects(&(IplImage)temp_mat, cascade, storage, 1.5, 3, 0
-				//| CV_HAAR_FIND_BIGGEST_OBJECT
-				| CV_HAAR_DO_ROUGH_SEARCH
-				| CV_HAAR_SCALE_IMAGE
-				,
-				Size(30, 30));
+			CvSeq* faces = cvHaarDetectObjects(&(IplImage)temp_mat, cascade, storage, 1.5, 3, 0 | CV_HAAR_DO_ROUGH_SEARCH | CV_HAAR_SCALE_IMAGE, Size(30, 30));
 
-			Rect maxrect;
-
-			for (size_t i = 0; i < faces->total; i++)
+			if (faces->total > 0)
 			{
-				Rect* maxrect = (Rect*)getSeqElem(faces, i);
+				Rect* maxrect = (Rect*)getSeqElem(faces, 0);
 
-				rectangle(src, CvPoint(maxrect->x, maxrect->y), CvPoint((maxrect->x + maxrect->width), (maxrect->y + maxrect->height)), CvScalar(0, 255, 0), 2);
+				lastFace = src(*maxrect).clone();
 
+				rectangle(src, CvPoint(maxrect->x, maxrect->y), CvPoint((maxrect->x + maxrect->width), (maxrect->y + maxrect->height)), CvScalar(0, 255, 0), 1);
+
+			}
+			else if (faces->total == 0 && !lastFace.empty())
+			{
+				rectangle(src, GetMatchRect(src, lastFace), CvScalar(0, 255, 0), 1);
 			}
 
 			label->setText(QString("Time : %1 \r\nCount : %2").arg(sw.Stop()).arg(faces->total));
@@ -152,5 +152,29 @@ cv::Mat Reverse(Mat src)
 	Mat dst = src < 100;
 
 	return dst;
+}
+
+
+cv::Rect GetMatchRect(Mat src, Mat roi)
+{
+	Mat result;
+
+	matchTemplate(src, roi, result, TM_CCORR_NORMED);
+
+	Point minLoc(0, 0);
+	Point maxLoc(0, 0);
+	double minVal = 0;
+	double maxVal = 0;
+
+	minMaxLoc(result, &minVal, &maxVal, &minLoc, &maxLoc);
+
+
+	auto wid = roi.cols;
+
+	auto hei = roi.rows;
+
+	return Rect(maxLoc.x, maxLoc.y, wid, hei);
+
+
 }
 

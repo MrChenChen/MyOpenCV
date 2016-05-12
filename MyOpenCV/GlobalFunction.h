@@ -8,11 +8,17 @@ using namespace cv;
 
 QImage  cvMat2QImage(const cv::Mat &);
 
+
 Mat QImage2cvMat(QImage &);
 
+
 QFileInfoList GetFileList(QString);
+
 
 Mat DetectFace(Mat &, CvHaarClassifierCascade*, QTextEdit*);
 
 
 Mat Reverse(Mat src);
+
+
+cv::Rect GetMatchRect(Mat src, Mat roi);
